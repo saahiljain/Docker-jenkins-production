@@ -1,0 +1,41 @@
+version: '3.2'
+services:
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    container_name: mongo
+    volumes: 
+      - ./mongo-data:/data/db
+    restart: always
+  sonarqube:
+    restart: always
+    image: sonarqube
+    ports:
+      - 9000:9000
+      - 9092:9092
+    container_name: sonarqube
+  jenkins:
+    build:
+      .
+    privileged: true
+    user: root
+    restart: always
+    environment: 
+      - SONARQUBE_HOST= sonarqube
+    ports:
+      - 8080:8080
+      - 50000:50000
+    container_name: jenkins
+    links:
+      - mongo
+    volumes:
+      - ./jenkins-data:/var/jenkins_home #Remember that, the tmp directory is designed to be wiped on system reboot.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - mongo
+      - sonarqube
+networks: 
+    default:
+      external: 
+        name: prices_and_promotions     
